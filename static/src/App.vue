@@ -8,41 +8,34 @@ const questions = ref({
   options: []
 })
 const selected = ref(null)
-var yearOrCity = true
+const yearOrCity = ref(Math.random() < 0.5)
 
-onMounted(async () => {
+const fetchQuestion = async (sourceLabel) => {
   try {
-    const apiUrl = yearOrCity ? 'http://localhost:3000/api/year' : 'http://localhost:3000/api/city'
-    console.log('fetching question (onMounted):', apiUrl)
+    const apiUrl = yearOrCity.value ? 'http://localhost:3000/api/year' : 'http://localhost:3000/api/city'
+    console.log(`fetching question (${sourceLabel}):`, apiUrl)
     const response = await axios.get(apiUrl)
     const responseData = response.data
 
     questions.value.name = responseData.name
-    questions.value.answer = yearOrCity ? responseData.year : responseData.city
-    questions.value.options = yearOrCity ? responseData.yearOptions : responseData.cityOptions
-    console.log('questions updated (onMounted):', { ...questions.value })
+    questions.value.answer = yearOrCity.value ? responseData.year : responseData.city
+    questions.value.options = yearOrCity.value
+      ? responseData.yearOptions.sort(() => Math.random() - 0.5)
+      : responseData.cityOptions.sort(() => Math.random() - 0.5)
+    console.log(`questions updated (${sourceLabel}):`, { ...questions.value })
   } catch (error) {
     console.error(error)
   }
+}
+
+onMounted(async () => {
+  await fetchQuestion('onMounted')
 })
 
 const newQuestion = async () => {
   selected.value = null
-  yearOrCity = !yearOrCity
-
-  try {
-    const apiUrl = yearOrCity ? 'http://localhost:3000/api/year' : 'http://localhost:3000/api/city'
-    console.log('fetching question (newQuestion):', apiUrl)
-    const response = await axios.get(apiUrl)
-    const responseData = response.data
-
-    questions.value.name = responseData.name
-    questions.value.answer = yearOrCity ? responseData.year : responseData.city
-    questions.value.options = yearOrCity ? responseData.yearOptions : responseData.cityOptions
-    console.log('questions updated (newQuestion):', { ...questions.value })
-  } catch (error) {
-    console.error(error)
-  }
+  yearOrCity.value = !yearOrCity.value
+  await fetchQuestion('newQuestion')
 }
 
 const SetAnswer = (e) => {
