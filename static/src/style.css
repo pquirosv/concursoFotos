@@ -109,7 +109,7 @@ h1 {
   cursor: pointer;
 }
 
-.option:hover {
+.option:not(.correct):not(.wrong):hover {
   background-color: #2d213f;
 }
 
