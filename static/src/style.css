@@ -1,12 +1,7 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -14,67 +9,199 @@
   -webkit-text-size-adjust: 100%;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
+  min-height: 100vh;
+  background-color: #271c36;
+  color: #FFF;
+}
+
+#app {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  width: 100%;
+  max-width: 1100px;
   min-height: 100vh;
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2rem;
+  margin-bottom: 2rem;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.card {
-  padding: 2em;
-}
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
+.foto {
+  align-self: center;
   padding: 2rem;
+  flex: 1 1 280px;
+  display: flex;
+  justify-content: center;
+}
+
+.mainElement {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.quiz {
+  background-color: #382a4b;
+  padding: 2rem;
+  flex: 1 1 320px;
+  width: 100%;
+  max-width: 640px;
+}
+
+.quiz-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.quiz-info .question {
+  color: #8F8F8F;
+  font-size: 1.25rem;
+}
+
+.quiz-info.score {
+  color: #FFF;
+  font-size: 1.25rem;
+}
+
+.options {
+  margin-bottom: 1rem;
   text-align: center;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.option.correct {
+  background-color: #2cce7d;
+}
+
+.option.wrong {
+  background-color: #ff5a5f;
+}
+
+.option {
+  padding: 1rem;
+  display: block;
+  background-color: #271c36;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.option:hover {
+  background-color: #2d213f;
+}
+
+.option:last-of-type {
+  margin-bottom: 0;
+}
+
+.option.disabled {
+  opacity: 0.5;
+}
+
+.option input {
+  display: none;
+}
+
+.foto img {
+  width: min(320px, 100%);
+  height: auto;
+  display: block;
+}
+
+.buttonContainer {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.slctButton {
+  appearance: none;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  background-color: #2cce7d;
+  color: #2d213f;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+  border-radius: 0.5rem;
+  
+}
+
+.selectButton:disabled {
+  opacity: 0.5;
+}
+
+h2 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+p {
+  color: #8F8F8F;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .app {
+    padding: 1.5rem;
   }
-  a:hover {
-    color: #747bff;
+
+  .mainElement {
+    flex-direction: column;
+    gap: 1.5rem;
   }
+
+  .foto {
+    padding: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .quiz {
+    padding: 1.25rem;
+  }
+
+  .quiz-info .question {
+    font-size: 1rem;
+  }
+
+  .option {
+    padding: 0.75rem;
+  }
+
   button {
-    background-color: #f9f9f9;
+    width: 100%;
+    font-size: 1rem;
   }
 }
