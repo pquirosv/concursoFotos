@@ -1,6 +1,6 @@
 # Concurso de Fotos
 
-Proyecto para mostrar fotos y jugar a adivinar el ano a partir de una imagen. Incluye API (Node/Express + MongoDB), frontend (Vite) y un script de ingesta de fotos.
+Proyecto para mostrar fotos y jugar a adivinar el año a partir de una imagen. Incluye API (Node/Express + MongoDB), frontend (Vite) y un script de ingesta de fotos.
 
 ## Estructura
 
