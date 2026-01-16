@@ -5,7 +5,7 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /var/lib/concurso/fotos:/var/lib/concurso/fotos:ro
+      - /home/pablo/Imágenes/concursoDev:/var/lib/concurso/fotos:ro
     depends_on:
       - frontend
       - api_prod
@@ -21,7 +21,7 @@ services:
   api_test:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: server/Dockerfile
     environment:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/concurso
@@ -38,7 +38,7 @@ services:
   api_prod:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: server/Dockerfile
     environment:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/concurso
@@ -62,7 +62,6 @@ services:
       - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./static:/app
-      - /app/node_modules
     depends_on:
       - api_test
 
@@ -70,10 +69,10 @@ services:
     image: python:3.12-slim
     restart: "no"
     working_dir: /app
-    command: python -m photo_ingest
+    command: sh -c "sleep infinity"
     volumes:
       - ./tools/photo_ingest:/app
-      - ./var/lib/concurso/fotos:/photos:ro
+      - "/home/pablo/Imágenes/concursoDev:/photos:ro"
 
 volumes:
   mongo-data:

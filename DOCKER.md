@@ -13,6 +13,7 @@ docker compose up --build
 
 ## Notas
 
+- El Dockerfile de la API vive en `server/Dockerfile` y se construye desde la raíz.
 - Los datos no se inicializan: agrega documentos a la colección `photos` en la base `prueba` para ver preguntas. Ejemplo rápido (otra terminal):
 ```
 docker exec -it concursofotos-mongo-1 mongosh "mongodb://localhost:27017/prueba" --eval 'db.photos.insertOne({name:"paris.jpg",year:2021,yearOptions:["2019","2020","2021","2022"]})'
