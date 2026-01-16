@@ -13,12 +13,6 @@ photoCtrl.getPrueba = (req, res) => {
     });
 }
 
-photoCtrl.getCityPhoto = async (req, res) => {
-    const Photo = getPhotoModel(resolveDataset());
-    const photo = await Photo.aggregate([{ $match: { city: { $exists: true } } }, { $sample: { size: 1 } }]);
-    res.json(photo[0]);  
-}
-
 photoCtrl.getYearPhoto = async (req, res) => {
     const Photo = getPhotoModel(resolveDataset());
     const photo = await Photo.aggregate([{ $match: { year: { $exists: true } } }, { $sample: { size: 1 } }]);

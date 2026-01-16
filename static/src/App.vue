@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
 const questions = ref({
@@ -8,20 +8,17 @@ const questions = ref({
   options: []
 })
 const selected = ref(null)
-const yearOrCity = ref(Math.random() < 0.5)
 
 const fetchQuestion = async (sourceLabel) => {
   try {
-    const apiUrl = yearOrCity.value ? '/api/year' : '/api/city'
+    const apiUrl = '/api/year'
     console.log(`fetching question (${sourceLabel}):`, apiUrl)
     const response = await axios.get(apiUrl)
     const responseData = response.data
 
     questions.value.name = responseData.name
-    questions.value.answer = yearOrCity.value ? responseData.year : responseData.city
-    questions.value.options = yearOrCity.value
-      ? responseData.yearOptions.sort(() => Math.random() - 0.5)
-      : responseData.cityOptions.sort(() => Math.random() - 0.5)
+    questions.value.answer = responseData.year
+    questions.value.options = responseData.yearOptions.sort(() => Math.random() - 0.5)
     console.log(`questions updated (${sourceLabel}):`, { ...questions.value })
   } catch (error) {
     console.error(error)
@@ -34,7 +31,6 @@ onMounted(async () => {
 
 const newQuestion = async () => {
   selected.value = null
-  yearOrCity.value = !yearOrCity.value
   await fetchQuestion('newQuestion')
 }
 
@@ -50,10 +46,7 @@ const SetAnswer = (e) => {
 		<div class="mainElement">
 		<div class="quiz">
 			<div class="quiz-info">
-				<span class="question" v-if="yearOrCity">
-					¿De que año es esta foto?</span>
-					<span class="question" v-else>
-					¿En que ciudad se hizo esta foto?</span>
+				<span class="question">¿De que año es esta foto?</span>
 			</div>
 			
 			<div class="options">

@@ -69,10 +69,12 @@ services:
     image: python:3.12-slim
     restart: "no"
     working_dir: /app
-    command: sh -c "sleep infinity"
+    command: sh -c "pip install -r /app/requirements.txt && python -m photo_ingest"
     volumes:
       - ./tools/photo_ingest:/app
       - "/home/pablo/Imágenes/concursoDev:/photos:ro"
+    depends_on:
+      - mongo
 
 volumes:
   mongo-data:

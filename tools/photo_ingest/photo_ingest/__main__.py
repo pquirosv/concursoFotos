@@ -61,13 +61,8 @@ def main() -> int:
     collection.drop()
 
     docs = []
-    existing_names = set(
-        doc["name"] for doc in collection.find({"name": {"$in": [p.name for p in files]}}, {"name": 1})
-    )
 
     for file_path in files:
-        if file_path.name in existing_names:
-            continue
         doc = {"name": file_path.name}
         extracted_year = extract_year(file_path.name)
         if extracted_year is not None:

@@ -8,7 +8,6 @@ router.get('/helloWorld', (req, res) => {
 })
 
 router.get('/', photo.getPrueba);
-router.get('/city', photo.getCityPhoto);
 router.get('/year', photo.getYearPhoto);
 
 module.exports = router;

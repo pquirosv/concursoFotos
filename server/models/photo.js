@@ -3,9 +3,7 @@ const { Schema } = mongoose;
 
 const PhotoSchema = new Schema({
     name: {type: String, required: true},
-    city: {type: String, required: false},
     year: {type: Number, required: false},
-    cityOptions: {type: [String], required: false},
     yearOptions: {type: [Number], required: false},
 });
 
