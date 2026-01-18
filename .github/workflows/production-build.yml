@@ -1,0 +1,50 @@
+name: production-build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: static/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: static
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: static
+
+      - name: Build API image
+        run: docker build -f server/Dockerfile -t concursofotos-api:latest .
+
+      - name: Build Nginx image
+        run: docker build -f Dockerfile.nginx -t concursofotos-web:latest .
+
+      - name: Deploy to server
+        if: github.ref == 'refs/heads/main'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch --all
+            git reset --hard origin/main
+            docker compose -f docker-compose.prod.yml up --build -d
