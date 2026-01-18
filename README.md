@@ -49,6 +49,20 @@ Notas:
 docker compose -f docker-compose.prod.yml up -d
 ```
 - El servicio `api` expone `127.0.0.1:3000` y monta las fotos desde `/var/lib/concurso/fotos`.
+- Para reindexar fotos en produccion:
+```
+docker compose -f docker-compose.prod.yml run --rm ingest
+```
+- Para subir fotos desde tu maquina local (ejemplo con tar):
+```
+tar -czf fotos.tar.gz /ruta/a/tus/fotos
+scp fotos.tar.gz pablo@TU_SERVIDOR:/tmp/
+```
+- En el servidor, descomprimir y ajustar permisos:
+```
+sudo tar -xzf /tmp/fotos.tar.gz -C /var/lib/concurso/fotos --strip-components=1
+sudo chmod -R o+rX /var/lib/concurso/fotos
+```
 
 ## Deployment automatico (GitHub Actions + SSH)
 
