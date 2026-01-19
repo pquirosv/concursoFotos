@@ -1,25 +1,48 @@
-# Ejecutar con Docker
+# Run With Docker
 
-Requisitos: Docker y Docker Compose instalados.
+Prereqs: Docker and Docker Compose installed.
 
-## Pasos rápidos
+## Dev compose (nginx + API + frontend + Mongo)
 
-1) Construir y levantar servicios (Mongo, API, frontend):
-```
+1) Build and start everything:
+```bash
 docker compose up --build
 ```
 
-2) UI disponible en `http://localhost:8080` (vía Nginx). La API queda en `http://localhost:8080/api` y Mongo en `mongo:27017`.
+2) URLs:
+- UI: `http://localhost:8080` (proxied through Nginx)
+- API: `http://localhost:8080/api`
+- Mongo (host port): `mongodb://localhost:27017/concurso`
 
-## Notas
+## Notes
 
-- El Dockerfile de la API vive en `server/Dockerfile` y se construye desde la raíz.
-- Para ejecutar la ingesta en contenedor (sin instalar Python localmente):
+- The API image is built from `server/Dockerfile` with context at repo root.
+- Nginx proxies `/` to the Vite dev server and `/api` to the API container.
+- The photo files are served from `/fotos/` via Nginx. In `docker-compose.yml` that path is mapped from `/home/pablo/Imágenes/concursoDev`. Adjust that host path for your machine.
+- There are two API containers:
+  - `api_prod` on port `3000` (used by Nginx)
+  - `api_test` on port `3001`
+- The dataset is chosen via `DATASET` and maps to:
+  - `prod` -> `photos_prod`
+  - `test` -> `photos_test`
+
+## Insert a sample document
+
+This inserts into the `photos_prod` collection in the `concurso` database:
+```bash
+docker compose exec mongo mongosh "mongodb://localhost:27017/concurso" --eval 'db.photos_prod.insertOne({name:"paris.jpg",year:2021})'
 ```
+
+## Run ingest in a container
+
+This reads photos from the mapped host folder and writes into Mongo:
+```bash
 docker compose run --rm ingest
 ```
-- Los datos no se inicializan: agrega documentos a la colección `photos` en la base `prueba` para ver preguntas. Ejemplo rápido (otra terminal):
+
+## Production compose
+
+For the production-like stack (API + Mongo + ingest), use:
+```bash
+docker compose -f docker-compose.prod.yml up --build
 ```
-docker exec -it concursofotos-mongo-1 mongosh "mongodb://localhost:27017/prueba" --eval 'db.photos.insertOne({name:"paris.jpg",year:2021,yearOptions:["2019","2020","2021","2022"]})'
-```
-- El frontend se sirve con Vite dev server; recarga cuando se reinicia el contenedor. La API usa `npm run dev` (Express + nodemon).
