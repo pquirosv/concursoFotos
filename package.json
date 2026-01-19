@@ -1,5 +1,5 @@
 {
-  "name": "concursofotos",
+  "name": "concurso",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PabloQuiros/concursoFotos.git"
+    "url": "git+https://github.com/PabloQuiros/concurso.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/PabloQuiros/concursoFotos/issues"
+    "url": "https://github.com/PabloQuiros/concurso/issues"
   },
-  "homepage": "https://github.com/PabloQuiros/concursoFotos#readme",
+  "homepage": "https://github.com/PabloQuiros/concurso#readme",
   "dependencies": {
     "axios": "^1.4.0",
     "cors": "^2.8.5",
