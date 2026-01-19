@@ -32,7 +32,6 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongo:27017/concurso
       - DATASET=prod
-      - PHOTOS_COLLECTION_TEST=photos_test
       - PHOTOS_COLLECTION_PROD=photos_prod
       - PHOTOS_DIR=/var/lib/concurso/fotos
     volumes:
