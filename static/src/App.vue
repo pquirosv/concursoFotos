@@ -15,10 +15,18 @@ const fetchQuestion = async (sourceLabel) => {
     console.log(`fetching question (${sourceLabel}):`, apiUrl)
     const response = await axios.get(apiUrl)
     const responseData = response.data
+	// year options generation
+	const currentYear = new Date().getFullYear()
+    const minYear = responseData.year - 4
+    const maxYear = responseData.year + 4
+    const candidates = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i)
+      .filter((year) => year !== responseData.year && year < currentYear)
+	  .sort(() => Math.random() - 0.5).slice(0, 3)
 
     questions.value.name = responseData.name
     questions.value.answer = responseData.year
-    questions.value.options = responseData.yearOptions.sort(() => Math.random() - 0.5)
+	questions.value.options = [responseData.year, ...candidates].sort(() => Math.random() - 0.5)
+	
     console.log(`questions updated (${sourceLabel}):`, { ...questions.value })
   } catch (error) {
     console.error(error)

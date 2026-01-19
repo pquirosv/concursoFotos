@@ -1,5 +1,4 @@
 import os
-import random
 import re
 import sys
 from pathlib import Path
@@ -32,14 +31,6 @@ def extract_year(filename: str):
             return year
     return None
 
-
-def year_options(year: int):
-    candidates = [value for value in range(year - 4, year + 5) if value != year]
-    options = [year] + random.sample(candidates, 3)
-    random.shuffle(options)
-    return options
-
-
 def main() -> int:
     photos_dir = Path(os.getenv("PHOTOS_DIR", "/photos"))
     if not photos_dir.exists():
@@ -67,7 +58,6 @@ def main() -> int:
         extracted_year = extract_year(file_path.name)
         if extracted_year is not None:
             doc["year"] = extracted_year
-            doc["yearOptions"] = year_options(extracted_year)
         docs.append(doc)
 
     if docs:
