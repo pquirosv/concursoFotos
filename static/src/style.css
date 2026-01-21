@@ -1,5 +1,15 @@
 :root {
-  font-family: 'Montserrat', sans-serif;
+  --color-text: #FFF;
+  --color-muted: #8F8F8F;
+  --color-bg: #1e0f33;
+  --color-panel: #382a4b;
+  --color-option: #271c36;
+  --color-option-hover: #2d213f;
+  --color-success: #2cce7d;
+  --color-danger: #ff5a5f;
+  --font-main: 'Montserrat', sans-serif;
+
+  font-family: var(--font-main);
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
@@ -13,8 +23,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #271c36;
-  color: #FFF;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 #app {
@@ -27,7 +37,7 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-main);
 }
 
 .app {
@@ -66,7 +76,7 @@ h1 {
 }
 
 .quiz {
-  background-color: #382a4b;
+  background-color: var(--color-panel);
   padding: 2rem;
   flex: 1 1 320px;
   width: 100%;
@@ -80,12 +90,12 @@ h1 {
 }
 
 .quiz-info .question {
-  color: #8F8F8F;
+  color: var(--color-muted);
   font-size: 1.25rem;
 }
 
 .quiz-info.score {
-  color: #FFF;
+  color: var(--color-text);
   font-size: 1.25rem;
 }
 
@@ -95,24 +105,24 @@ h1 {
 }
 
 .option.correct {
-  background-color: #2cce7d;
+  background-color: var(--color-success);
 }
 
 .option.wrong {
-  background-color: #ff5a5f;
+  background-color: var(--color-danger);
 }
 
 .option {
   padding: 1rem;
   display: block;
-  background-color: #271c36;
+  background-color: var(--color-option);
   margin-bottom: 0.5rem;
   border-radius: 0.5rem;
   cursor: pointer;
 }
 
 .option:not(.correct):not(.wrong):hover {
-  background-color: #2d213f;
+  background-color: var(--color-option-hover);
 }
 
 .option:last-of-type {
@@ -146,8 +156,8 @@ h1 {
   border: none;
   cursor: pointer;
   padding: 0.5rem 1rem;
-  background-color: #2cce7d;
-  color: #2d213f;
+  background-color: var(--color-success);
+  color: var(--color-option-hover);
   font-weight: 700;
   text-transform: uppercase;
   font-size: 1.2rem;
@@ -166,7 +176,7 @@ h2 {
 }
 
 p {
-  color: #8F8F8F;
+  color: var(--color-muted);
   font-size: 1.5rem;
   text-align: center;
 }
@@ -208,4 +218,4 @@ p {
     width: 100%;
     font-size: 1rem;
   }
-}
+} 

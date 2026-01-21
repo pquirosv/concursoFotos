@@ -31,6 +31,19 @@ def extract_year(filename: str):
             return year
     return None
 
+def prompt_drop_collection() -> bool:
+    prompt = "Delete existing database records before ingest? (y)es/(n)o: "
+    i = 0
+    while i < 2:
+        response = input(prompt).strip().lower()
+        if response in ("y", "yes"):
+            return True
+        if response in ("n", "no"):
+            return False
+        i += 1
+        print("Please respond with (y)es or (n)o. (Default is (y)es)")
+    return True
+
 def main() -> int:
     photos_dir = Path(os.getenv("PHOTOS_DIR", "/photos"))
     if not photos_dir.exists():
@@ -48,8 +61,13 @@ def main() -> int:
     dataset = os.getenv("DATASET", "prod").lower()
     collection_name = collection_for_dataset()
     collection = db[collection_name]
-    print(f"Using dataset: {dataset}. Dropping collection: {collection_name}")
-    collection.drop()
+    drop_collection = prompt_drop_collection()
+    
+    if drop_collection:
+        print(f"Using dataset: {dataset}. Dropping collection: {collection_name}")
+        collection.drop()
+    else:
+        print(f"Using dataset: {dataset}. Appending to collection: {collection_name}")
 
     docs = []
 
