@@ -6,6 +6,20 @@ from pathlib import Path
 from pymongo import MongoClient
 
 
+IMAGE_EXTENSIONS = {
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".bmp",
+    ".tif",
+    ".tiff",
+    ".webp",
+    ".heic",
+    ".heif",
+}
+
+
 def collection_for_dataset() -> str:
     dataset = os.getenv("DATASET", "prod").lower()
     if dataset == "test":
@@ -30,6 +44,9 @@ def extract_year(filename: str):
         if year >= 1970:
             return year
     return None
+
+def is_image_file(path: Path) -> bool:
+    return path.suffix.lower() in IMAGE_EXTENSIONS
 
 def prompt_drop_collection() -> bool:
     prompt = "Delete existing database records before ingest? (y)es/(n)o: "
@@ -72,6 +89,16 @@ def main() -> int:
     docs = []
 
     for file_path in files:
+        if not is_image_file(file_path):
+            try:
+                file_path.unlink()
+                print(f"Deleted non-image file: {file_path.name}")
+            except OSError as exc:
+                print(
+                    f"Failed to delete non-image file {file_path.name}: {exc}",
+                    file=sys.stderr,
+                )
+            continue
         doc = {"name": file_path.name}
         extracted_year = extract_year(file_path.name)
         if extracted_year is not None:
