@@ -7,7 +7,7 @@
   --color-option-hover: #2d213f;
   --color-success: #2cce7d;
   --color-danger: #ff5a5f;
-  --font-main: 'Montserrat', sans-serif;
+  --font-main: "Times New Roman", Times, "Liberation Serif", "Georgia", serif;
 
   font-family: var(--font-main);
   line-height: 1.5;
@@ -96,6 +96,21 @@ h1 {
 
 .quiz-info.score {
   color: var(--color-text);
+  font-size: 1.25rem;
+}
+
+.empty-state {
+  padding: 1.5rem;
+  background-color: var(--color-panel);
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.empty-message {
+  color: var(--color-muted);
   font-size: 1.25rem;
 }
 
@@ -207,6 +222,10 @@ p {
   }
 
   .quiz-info .question {
+    font-size: 1rem;
+  }
+
+  .empty-message {
     font-size: 1rem;
   }
 

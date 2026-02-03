@@ -8,6 +8,17 @@ const questions = ref({
   options: []
 })
 const selected = ref(null)
+const hasPhotos = ref(false)
+
+const fetchPhotosCount = async () => {
+  try {
+    const response = await axios.get('/api/photos/count')
+    hasPhotos.value = Number(response.data?.count || 0) > 0
+  } catch (error) {
+    console.error(error)
+    hasPhotos.value = false
+  }
+}
 
 const fetchQuestion = async (sourceLabel) => {
   try {
@@ -34,6 +45,7 @@ const fetchQuestion = async (sourceLabel) => {
 }
 
 onMounted(async () => {
+  await fetchPhotosCount()
   await fetchQuestion('onMounted')
 })
 
@@ -51,12 +63,14 @@ const SetAnswer = (e) => {
 <template>
 	<main class="app">
 		<h1>Concurso</h1>
-		<div class="mainElement">
+		<div v-if="!hasPhotos" class="empty-state">
+			<span class="empty-message">No hay fotos disponibles. Por favor, sube algunas fotos para comenzar el concurso.</span>
+		</div>
+		<div v-else class="mainElement">
 		<div class="quiz">
 			<div class="quiz-info">
 				<span class="question">¿De que año es esta foto?</span>
 			</div>
-			
 			<div class="options">
 				<label  
 					v-for="(option, index) in questions.options" 

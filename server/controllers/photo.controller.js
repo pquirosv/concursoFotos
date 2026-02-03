@@ -19,4 +19,10 @@ photoCtrl.getYearPhoto = async (req, res) => {
     res.json(photo[0]);  
 }
 
+photoCtrl.getPhotosCount = async (req, res) => {
+    const Photo = getPhotoModel(resolveDataset());
+    const count = await Photo.countDocuments({});
+    res.json({ count });
+}
+
 module.exports = photoCtrl;
