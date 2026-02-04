@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 const PhotoSchema = new Schema({
     name: {type: String, required: true},
     year: {type: Number, required: false},
+    city: {type: String, required: false}
 });
 
 const collectionFor = (dataset) => {

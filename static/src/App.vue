@@ -22,6 +22,7 @@ const fetchPhotosCount = async () => {
 
 const fetchQuestion = async (sourceLabel) => {
   try {
+	// Randomly call year or city question in future
     const apiUrl = '/api/year'
     console.log(`fetching question (${sourceLabel}):`, apiUrl)
     const response = await axios.get(apiUrl)

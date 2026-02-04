@@ -9,6 +9,7 @@ router.get('/helloWorld', (req, res) => {
 
 router.get('/', photo.getPrueba);
 router.get('/year', photo.getYearPhoto);
+router.get('/city', photo.getCityPhoto);
 router.get('/photos/count', photo.getPhotosCount);
 
 module.exports = router;
