@@ -92,7 +92,7 @@ services:
       - DATASET=prod
     volumes:
       - ./tools/photo_ingest:/app
-      - /home/pablo/Imágenes/concursoDev:/photos:ro
+      - /home/pablo/Imágenes/concursoDev:/photos:rw
     depends_on:
       - mongo
 

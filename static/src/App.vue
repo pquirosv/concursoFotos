@@ -29,7 +29,6 @@ const initDatasetInfo = async () => {
 		const citiesResponse = await axios.get('/api/cities')
 		cities.value = citiesResponse.data || []
 		setQuestionMode()
-		setApiPicker()
 	}
     hasInitialized.value = true
   } catch (error) {
@@ -78,11 +77,11 @@ const fetchQuestion = async (sourceLabel) => {
 		questions.value.name = responseData.name
 		questions.value.mode = 'city'
 		questions.value.answer = responseData.city
-		const otherCities = cities.value
+		const candidates = cities.value
 			.filter((city) => city && city !== responseData.city)
 			.sort(() => Math.random() - 0.5)
 			.slice(0, 3)
-		questions.value.options = [responseData.city, ...otherCities].sort(() => Math.random() - 0.5)
+		questions.value.options = [responseData.city, ...candidates].sort(() => Math.random() - 0.5)
 	}
     console.log(`questions updated (${sourceLabel}):`, { ...questions.value })
   } catch (error) {
