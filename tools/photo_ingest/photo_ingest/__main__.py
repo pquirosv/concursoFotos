@@ -21,7 +21,6 @@ IMAGE_EXTENSIONS = {
 }
 
 
-# Resolve the target collection name based on the DATASET environment variable.
 def collection_for_dataset() -> str:
     dataset = os.getenv("DATASET", "prod").lower()
     if dataset == "test":
@@ -29,7 +28,6 @@ def collection_for_dataset() -> str:
     return os.getenv("PHOTOS_COLLECTION_PROD", "photos_prod")
 
 
-# Resolve the database from the URI or default to MONGODB_DB.
 def resolve_database(client: MongoClient):
     db = client.get_default_database()
     if db is not None:
@@ -37,23 +35,16 @@ def resolve_database(client: MongoClient):
     return client[os.getenv("MONGODB_DB", "concurso")]
 
 
-# Extract a plausible year from the filename, if present.
 def extract_year(filename: str):
-    patterns = [r"-([0-9]{8})-", r"_([0-9]{8})_", r"([0-9]{8})_"]
-    for pattern in patterns:
-        match = re.search(pattern, filename)
-        if not match:
-            continue
+    for match in re.finditer(r"(?<!\d)(\d{8})(?!\d)", filename):
         year = int(match.group(1)[:4])
         if year >= 1970:
             return year
     return None
 
-# Check whether the file has an allowed image extension.
 def is_image_file(path: Path) -> bool:
     return path.suffix.lower() in IMAGE_EXTENSIONS
 
-# Ask whether to drop existing records (or read DROP_COLLECTION env).
 def prompt_drop_collection() -> bool:
     env_value = os.getenv("DROP_COLLECTION")
     if env_value is not None:
@@ -75,32 +66,38 @@ def prompt_drop_collection() -> bool:
         i += 1
     return True
 
-# Ingest photos from a directory into MongoDB.
-def main() -> int:
-    # Resolve the source photos directory either from PHOTOS_DIR or by scanning up to repo root.
+def resolve_source_dir() -> Path | None:
     photos_dir_env = os.getenv("PHOTOS_DIR")
     if photos_dir_env:
-        source_dir = Path(photos_dir_env)
-    else:
-        repo_photos_dir = None
-        for parent in Path(__file__).resolve().parents:
-            candidate = parent / "static" / "public" / "fotos_test"
-            if candidate.exists():
-                repo_photos_dir = candidate
-                break
-        if repo_photos_dir is None:
-            print("Photos directory not found: repo root not resolvable", file=sys.stderr)
-            return 1
-        source_dir = repo_photos_dir
+        return Path(photos_dir_env)
 
-    # Resolve the output directory (defaults to the source directory).
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "static" / "public" / "fotos_test"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def resolve_output_dir(source_dir: Path) -> Path:
     output_dir_env = os.getenv("PHOTOS_OUT_DIR")
     if output_dir_env:
-        output_dir = Path(output_dir_env)
-    elif source_dir.name == "fotos_test":
-        output_dir = source_dir.parent / "fotos"
-    else:
-        output_dir = source_dir
+        return Path(output_dir_env)
+    if source_dir.name == "fotos_test":
+        return source_dir.parent / "fotos"
+    return source_dir
+
+
+def iter_files(source_dir: Path):
+    return (path for path in sorted(source_dir.rglob("*")) if path.is_file())
+
+
+def main() -> int:
+    source_dir = resolve_source_dir()
+    if source_dir is None:
+        print("Photos directory not found: repo root not resolvable", file=sys.stderr)
+        return 1
+
+    output_dir = resolve_output_dir(source_dir)
     print("output_dir:", output_dir)
 
     # Validate the photos directories exist.
@@ -114,7 +111,7 @@ def main() -> int:
         return 1
 
     # Gather files to ingest (including files inside city-named folders).
-    files = sorted(path for path in source_dir.rglob("*") if path.is_file())
+    files = list(iter_files(source_dir))
     if not files:
         print(f"No files found in {source_dir}")
         return 0
@@ -150,24 +147,20 @@ def main() -> int:
                     file=sys.stderr,
                 )
             continue
+
         doc = {}
-        
         parts = []
-        # If the file is inside a city-named folder, use that folder name as city.
         relative_parts = file_path.relative_to(source_dir).parts
-        city = None
         if len(relative_parts) >= 2:
             city = relative_parts[0]
             doc["city"] = city
             parts.append(city)
-        
-        # If a year can be extracted from the filename, include it.
+
         extracted_year = extract_year(file_path.name)
         if extracted_year is not None:
             doc["year"] = extracted_year
             parts.append(str(extracted_year))
-        
-        # Always rename into the root folder with a global auto-incrementing suffix.
+
         base = "_".join(parts) if parts else file_path.stem
         global_suffix += 1
         new_name = f"{base}_{global_suffix}{file_path.suffix}"
@@ -179,11 +172,11 @@ def main() -> int:
 
         if output_dir.resolve() == source_dir.resolve():
             if file_path.resolve() != target_path.resolve():
-                file_path = file_path.rename(target_path)
+                file_path.rename(target_path)
         else:
-            shutil.copy2(file_path, target_path)
+            shutil.move(file_path, target_path)
+
         doc["name"] = new_name
-        
         docs.append(doc)
 
     # Insert the documents if any were created.

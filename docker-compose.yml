@@ -72,12 +72,14 @@ services:
     working_dir: /app
     command: sh -c "pip install -r /app/requirements.txt && python -m photo_ingest"
     environment:
-      - PHOTOS_DIR=/photos
+      - PHOTOS_DIR=/photos_test
+      - PHOTOS_OUT_DIR=/photos_out
       - MONGODB_URI=mongodb://mongo:27017/concurso
       - DATASET=test
     volumes:
       - ./tools/photo_ingest:/app
-      - ./static/public/fotos:/photos:ro
+      - ./static/public/fotos_test:/photos_test:ro
+      - ./static/public/fotos:/photos_out:rw
     depends_on:
       - mongo
 
@@ -87,12 +89,14 @@ services:
     working_dir: /app
     command: sh -c "pip install -r /app/requirements.txt && python -m photo_ingest"
     environment:
-      - PHOTOS_DIR=/photos
+      - PHOTOS_DIR=/photos_in
+      - PHOTOS_OUT_DIR=/photos_out
       - MONGODB_URI=mongodb://mongo:27017/concurso
       - DATASET=prod
     volumes:
       - ./tools/photo_ingest:/app
-      - /home/pablo/Imágenes/concursoDev:/photos:rw
+      - /home/pablo/Imágenes/ConcursoDev:/photos_in:ro
+      - /home/pablo/Imágenes/ConcursoDev_out:/photos_out:rw
     depends_on:
       - mongo
 
