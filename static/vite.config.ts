@@ -11,6 +11,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://api:3000',
+      '/fotos': {
+        target: 'http://nginx:80',
+        changeOrigin: true,
+      },
     },
   },
 })

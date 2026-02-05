@@ -2,6 +2,38 @@
 
 Project to display photos and play a guessing game by year. It includes an API (Node/Express + MongoDB), a frontend (Vite), and a photo ingestion script.
 
+## Quickstart (Docker)
+
+1) Create `.env` with your local photo folders:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set **absolute paths**:
+```
+PHOTOS_DIR=/path/to/your/photos
+PHOTOS_OUT_DIR=/path/to/your/photos_out
+```
+
+2) Create the folders and put photos in `PHOTOS_DIR`:
+```bash
+mkdir -p /path/to/your/photos /path/to/your/photos_out
+```
+
+3) Start the stack:
+```bash
+docker compose up -d --build
+```
+
+4) Run ingestion (one-shot):
+```bash
+docker compose run --rm ingest
+```
+
+5) Open the UI:
+- `http://localhost:8080` (via Nginx)
+- `http://localhost:5173` (Vite dev server)
+
 ## Structure
 
 - `server/`: API and models.
@@ -42,7 +74,7 @@ There is a small set of photos under `static/public/fotos` that you can use to v
 
 - Mongo is exposed at `localhost:27017`.
 - The API is available at `http://localhost:8080/api`.
-- Photos are mounted from `/home/pablo/Imágenes/concursoDev` into the Nginx container.
+- Photos are served from `PHOTOS_OUT_DIR` under `/fotos/` by Nginx.
 
 ## Production (optimized static assets)
 

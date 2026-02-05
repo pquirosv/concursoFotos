@@ -63,47 +63,173 @@ def prompt_drop_collection() -> bool:
         i += 1
     return True
 
-def resolve_source_dir() -> Path | None:
-    photos_dir_env = os.getenv("PHOTOS_DIR")
-    if photos_dir_env:
-        return Path(photos_dir_env)
+def find_repo_root() -> Path:
+    markers = ("docker-compose.yml", ".env", ".git")
+    for start in (Path.cwd(), Path(__file__).resolve()):
+        for parent in (start, *start.parents):
+            if any((parent / marker).exists() for marker in markers):
+                return parent
+    return Path.cwd()
 
-    for parent in Path(__file__).resolve().parents:
-        candidate = parent / "static" / "public" / "fotos"
-        if candidate.exists():
-            return candidate
+def load_dotenv(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    data: dict[str, str] = {}
+    for line in path.read_text().splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        data[key.strip()] = value.strip().strip('"')
+    return data
+
+def format_env_value(value: str) -> str:
+    if value == "":
+        return '""'
+    if re.search(r'\s|#|"', value):
+        return '"' + value.replace('"', '\\"') + '"'
+    return value
+
+def update_dotenv_file(path: Path, updates: dict[str, str]) -> None:
+    lines: list[str] = []
+    if path.exists():
+        lines = path.read_text().splitlines()
+    else:
+        lines = [
+            "# Local environment overrides",
+        ]
+
+    seen = set()
+    updated_lines: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in line:
+            updated_lines.append(line)
+            continue
+        key = line.split("=", 1)[0].strip()
+        if key in updates:
+            updated_lines.append(f"{key}={format_env_value(updates[key])}")
+            seen.add(key)
+        else:
+            updated_lines.append(line)
+
+    for key, value in updates.items():
+        if key not in seen:
+            updated_lines.append(f"{key}={format_env_value(value)}")
+
+    path.write_text("\n".join(updated_lines) + "\n")
+
+def normalize_path(value: str) -> Path:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = (Path.cwd() / path).resolve()
+    return path
+
+def can_create_path(path: Path) -> bool:
+    if path.exists():
+        return os.access(path, os.W_OK | os.X_OK)
+    return os.access(path.parent, os.W_OK | os.X_OK)
+
+def default_photos_base_dir() -> Path:
+    preferred = Path("/var/lib/concurso")
+    if os.name != "nt" and can_create_path(preferred):
+        return preferred
+    return Path.home() / "concurso"
+
+def ensure_directory(path: Path, label: str) -> bool:
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except PermissionError as exc:
+        print(f"Permission error creating {label} at {path}: {exc}", file=sys.stderr)
+        return False
+    except OSError as exc:
+        print(f"Failed to create {label} at {path}: {exc}", file=sys.stderr)
+        return False
+    if not path.is_dir():
+        print(f"{label} is not a directory: {path}", file=sys.stderr)
+        return False
+    return True
+
+def prompt_for_path(var_name: str, default_path: Path) -> Path | None:
+    attempts = 0
+    while attempts < 3:
+        response = input(f"{var_name} [default: {default_path}]: ").strip()
+        chosen = default_path if response == "" else normalize_path(response)
+        if ensure_directory(chosen, var_name):
+            return chosen
+        print(f"Please provide a different path for {var_name}.")
+        attempts += 1
     return None
 
+def resolve_photos_dirs() -> tuple[Path, Path] | None:
+    repo_root = find_repo_root()
+    dotenv_path = repo_root / ".env"
+    dotenv_values = load_dotenv(dotenv_path)
 
-def resolve_output_dir(source_dir: Path) -> Path:
-    output_dir_env = os.getenv("PHOTOS_OUT_DIR")
-    if output_dir_env:
-        return Path(output_dir_env)
-    return source_dir
+    source_value = os.getenv("PHOTOS_DIR") or dotenv_values.get("PHOTOS_DIR")
+    output_value = os.getenv("PHOTOS_OUT_DIR") or dotenv_values.get("PHOTOS_OUT_DIR")
+    updates: dict[str, str] = {}
 
+    if not source_value or not output_value:
+        if not sys.stdin.isatty():
+            print(
+                "PHOTOS_DIR/PHOTOS_OUT_DIR are required. Define them in the environment or in .env.",
+                file=sys.stderr,
+            )
+            return None
+
+        base_dir = default_photos_base_dir()
+        default_source = base_dir / "fotos"
+        default_output = base_dir / "fotos_out"
+
+        if not source_value:
+            chosen = prompt_for_path("PHOTOS_DIR", default_source)
+            if chosen is None:
+                return None
+            source_value = str(chosen)
+            updates["PHOTOS_DIR"] = source_value
+
+        if not output_value:
+            chosen = prompt_for_path("PHOTOS_OUT_DIR", default_output)
+            if chosen is None:
+                return None
+            output_value = str(chosen)
+            updates["PHOTOS_OUT_DIR"] = output_value
+
+        if updates:
+            try:
+                update_dotenv_file(dotenv_path, updates)
+                print(f"Saved settings to {dotenv_path}")
+            except OSError as exc:
+                print(f"Warning: failed to write {dotenv_path}: {exc}", file=sys.stderr)
+
+    source_dir = normalize_path(source_value)
+    output_dir = normalize_path(output_value)
+
+    if not ensure_directory(source_dir, "PHOTOS_DIR"):
+        return None
+    if not ensure_directory(output_dir, "PHOTOS_OUT_DIR"):
+        return None
+    if output_dir.resolve() == source_dir.resolve():
+        print(
+            "PHOTOS_OUT_DIR must be different from PHOTOS_DIR to avoid writing in the source folder.",
+            file=sys.stderr,
+        )
+        return None
+    return source_dir, output_dir
 
 def iter_files(source_dir: Path):
     return (path for path in sorted(source_dir.rglob("*")) if path.is_file())
 
 
 def main() -> int:
-    source_dir = resolve_source_dir()
-    if source_dir is None:
-        print("Photos directory not found: repo root not resolvable", file=sys.stderr)
+    resolved = resolve_photos_dirs()
+    if resolved is None:
         return 1
+    source_dir, output_dir = resolved
 
-    output_dir = resolve_output_dir(source_dir)
-    print("output_dir:", output_dir)
-
-    # Validate the photos directories exist.
-    if not source_dir.exists():
-        print(f"Photos directory not found: {source_dir}", file=sys.stderr)
-        return 1
-    if not output_dir.exists():
-        output_dir.mkdir(parents=True, exist_ok=True)
-    if not output_dir.is_dir():
-        print(f"Photos output path is not a directory: {output_dir}", file=sys.stderr)
-        return 1
+    print(f"PHOTOS_DIR: {source_dir}")
+    print(f"PHOTOS_OUT_DIR: {output_dir}")
 
     # Gather files to ingest (including files inside city-named folders).
     files = list(iter_files(source_dir))
@@ -123,52 +249,42 @@ def main() -> int:
     if drop_collection:
         print(f"Dropping collection: {collection_name}")
         collection.drop()
+        if output_dir.exists():
+            print(f"Clearing output directory: {output_dir}")
+            for path in output_dir.iterdir():
+                if path.is_dir():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
     else:
         print(f"Appending to collection: {collection_name}")
 
     # Build documents for valid image files and prune non-image files.
     docs = []
-    global_suffix = 0
 
     for file_path in files:
         if not is_image_file(file_path):
-            try:
-                file_path.unlink()
-                print(f"Deleted non-image file: {file_path.name}")
-            except OSError as exc:
-                print(
-                    f"Failed to delete non-image file {file_path.name}: {exc}",
-                    file=sys.stderr,
-                )
+            print(f"Skipping non-image file: {file_path.name}")
             continue
 
         doc = {}
-        parts = []
         relative_parts = file_path.relative_to(source_dir).parts
-        if len(relative_parts) >= 2:
+        city = None
+        if len(relative_parts) >= 2 and file_path.parent.parent == source_dir:
             city = relative_parts[0]
             doc["city"] = city
-            parts.append(city)
 
         extracted_year = extract_year(file_path.name)
         if extracted_year is not None:
             doc["year"] = extracted_year
-            parts.append(str(extracted_year))
 
-        base = "_".join(parts) if parts else file_path.stem
-        global_suffix += 1
-        new_name = f"{base}_{global_suffix}{file_path.suffix}"
+        new_name = file_path.name
+
         target_path = output_dir / new_name
-        while target_path.exists():
-            global_suffix += 1
-            new_name = f"{base}_{global_suffix}{file_path.suffix}"
-            target_path = output_dir / new_name
-
-        if output_dir.resolve() == source_dir.resolve():
-            if file_path.resolve() != target_path.resolve():
-                file_path.rename(target_path)
-        else:
-            shutil.move(file_path, target_path)
+        if file_path.resolve() != target_path.resolve():
+            if target_path.exists():
+                print(f"Overwriting existing file: {target_path.name}")
+            shutil.copy2(file_path, target_path)
 
         doc["name"] = new_name
         docs.append(doc)

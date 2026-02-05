@@ -2,38 +2,51 @@
 
 Prereqs: Docker and Docker Compose installed.
 
-## Dev compose (nginx + API + frontend + Mongo)
+## First time (after clone)
 
-1) Build and start everything:
+1) Create your local env file:
 ```bash
-docker compose up --build
+cp .env.example .env
 ```
 
-2) URLs:
-- UI: `http://localhost:8080` (proxied through Nginx)
-- API: `http://localhost:8080/api`
-- Mongo (host port): `mongodb://localhost:27017/concurso`
+2) Edit `.env` with **absolute host paths**:
+```bash
+PHOTOS_DIR=/path/to/your/photos
+PHOTOS_OUT_DIR=/path/to/your/photos_out
+```
+
+3) Create the folders and put your photos in `PHOTOS_DIR`:
+```bash
+mkdir -p /path/to/your/photos /path/to/your/photos_out
+```
+
+4) Build and start everything:
+```bash
+docker compose up -d --build
+```
+
+5) Run ingestion (one-shot):
+```bash
+docker compose run --rm ingest
+```
+
+6) Open the UI:
+- `http://localhost:8080` (proxied through Nginx)
+- `http://localhost:5173` (Vite dev server)
 
 ## Notes
 
-- The API image is built from `server/Dockerfile` with context at repo root.
-- Nginx proxies `/` to the Vite dev server and `/api` to the API container.
-- The photo files are served from `/fotos/` via Nginx. In `docker-compose.yml` that path is mapped from `/home/pablo/Imágenes/concursoDev`. Adjust that host path for your machine.
-- The API container runs as `api` on port `3000` (used by Nginx).
+- Docker Compose reads variables from `.env`. If it is missing or empty, you will get an error like: `invalid spec: :/var/lib/concurso/fotos:ro`.
+- Nginx serves photos from `PHOTOS_OUT_DIR` at `/fotos/`.
+- Ingest reads from `PHOTOS_DIR` and writes to `PHOTOS_OUT_DIR` (source is read-only).
+- The API runs on port `3000` inside Docker and is proxied by Nginx at `/api`.
 - The photos collection defaults to `photos` and can be overridden with `PHOTOS_COLLECTION`.
 
-## Insert a sample document
+## Insert a sample document (optional)
 
 This inserts into the `photos` collection in the `concurso` database:
 ```bash
 docker compose exec mongo mongosh "mongodb://localhost:27017/concurso" --eval 'db.photos.insertOne({name:"paris.jpg",year:2021})'
-```
-
-## Run ingest in a container
-
-This reads photos from the mapped host folder and writes into Mongo:
-```bash
-docker compose run --rm ingest
 ```
 
 ## Production compose
@@ -42,3 +55,5 @@ For the production-like stack (API + Mongo + ingest), use:
 ```bash
 docker compose -f docker-compose.prod.yml up --build
 ```
+
+If you use the `ingest` service in production, ensure the compose file mounts both input and output folders (and that they exist on the host).

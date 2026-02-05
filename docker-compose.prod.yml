@@ -14,13 +14,10 @@ services:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/concurso
       - PHOTOS_COLLECTION=photos
-      - PHOTOS_DIR=/var/lib/concurso/fotos
     depends_on:
       - mongo
     ports:
       - "127.0.0.1:3000:3000"
-    volumes:
-      - /var/lib/concurso/fotos:/var/lib/concurso/fotos:ro
 
   ingest:
     image: python:3.12-slim
@@ -30,10 +27,12 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongo:27017/concurso
       - PHOTOS_COLLECTION=photos
-      - PHOTOS_DIR=/var/lib/concurso/fotos
+      - PHOTOS_DIR=${PHOTOS_DIR}
+      - PHOTOS_OUT_DIR=${PHOTOS_OUT_DIR}
     volumes:
       - ./tools/photo_ingest:/app
-      - /var/lib/concurso/fotos:/var/lib/concurso/fotos:ro
+      - ${PHOTOS_DIR}:/photos:ro
+      - ${PHOTOS_OUT_DIR}:/photos_out:rw
     depends_on:
       - mongo
 

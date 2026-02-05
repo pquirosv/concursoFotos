@@ -7,8 +7,7 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # Photos from the repo (dev)
-      - /home/pablo/Imágenes/concursoDev:/var/lib/concurso/fotos:ro
+      - ${PHOTOS_OUT_DIR}:/var/lib/concurso/fotos:ro
     depends_on:
       - frontend
       - api
@@ -55,12 +54,12 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongo:27017/concurso
       - PHOTOS_COLLECTION=photos
-      - PHOTOS_DIR=/photos_in
+      - PHOTOS_DIR=/photos
       - PHOTOS_OUT_DIR=/photos_out
     volumes:
       - ./tools/photo_ingest:/app
-      - /home/pablo/Imágenes/ConcursoDev:/photos_in:ro
-      - /home/pablo/Imágenes/ConcursoDev_out:/photos_out:rw
+      - ${PHOTOS_DIR}:/photos:ro
+      - ${PHOTOS_OUT_DIR}:/photos_out:rw
     depends_on:
       - mongo
 
