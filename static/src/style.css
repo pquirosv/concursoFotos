@@ -145,7 +145,8 @@ h1 {
 }
 
 .option.disabled {
-  opacity: 0.5;
+  opacity: 0.75;
+  cursor: auto;
 }
 
 .option input {
@@ -177,11 +178,11 @@ h1 {
   text-transform: uppercase;
   font-size: 1.2rem;
   border-radius: 0.5rem;
-  
 }
 
-.selectButton:disabled {
-  opacity: 0.5;
+.slctButton:disabled {
+  opacity: 0.8;
+  cursor: auto;
 }
 
 h2 {

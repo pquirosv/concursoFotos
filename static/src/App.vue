@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 
 const questions = ref({
@@ -15,6 +15,15 @@ const hasYearPhoto = ref(false)
 const cities = ref([])
 const hasInitialized = ref(false)
 const questionMode = ref(() => '/api/year')
+const isQuestionReady = computed(
+	() => Boolean(questions.value.name) && questions.value.options.length > 0
+)
+const showEmptyState = computed(
+	() => hasInitialized.value && !hasPhotos.value
+)
+const showMain = computed(
+	() => hasInitialized.value && hasPhotos.value && isQuestionReady.value
+)
 
 // Fetch dataset metadata once (photo count, year availability, cities list).
 const initDatasetInfo = async () => {
@@ -113,10 +122,10 @@ const SetAnswer = (e) => {
 <template>
 	<main class="app">
 		<h1>Concurso</h1>
-		<div v-if="!hasPhotos" class="empty-state">
+		<div v-if="showEmptyState" class="empty-state">
 			<span class="empty-message">No hay fotos disponibles. Por favor, sube algunas fotos para comenzar el concurso.</span>
 		</div>
-		<div v-else class="mainElement">
+		<div v-show="showMain" class="mainElement">
 		<div class="quiz">
 			<div class="quiz-info">
 				<!-- If the question is about year, show "¿De que año es esta foto?" -->
