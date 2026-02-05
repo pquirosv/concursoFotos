@@ -21,11 +21,8 @@ IMAGE_EXTENSIONS = {
 }
 
 
-def collection_for_dataset() -> str:
-    dataset = os.getenv("DATASET", "prod").lower()
-    if dataset == "test":
-        return os.getenv("PHOTOS_COLLECTION_TEST", "photos_test")
-    return os.getenv("PHOTOS_COLLECTION_PROD", "photos_prod")
+def collection_for_ingest() -> str:
+    return os.getenv("PHOTOS_COLLECTION", "photos")
 
 
 def resolve_database(client: MongoClient):
@@ -72,7 +69,7 @@ def resolve_source_dir() -> Path | None:
         return Path(photos_dir_env)
 
     for parent in Path(__file__).resolve().parents:
-        candidate = parent / "static" / "public" / "fotos_test"
+        candidate = parent / "static" / "public" / "fotos"
         if candidate.exists():
             return candidate
     return None
@@ -82,8 +79,6 @@ def resolve_output_dir(source_dir: Path) -> Path:
     output_dir_env = os.getenv("PHOTOS_OUT_DIR")
     if output_dir_env:
         return Path(output_dir_env)
-    if source_dir.name == "fotos_test":
-        return source_dir.parent / "fotos"
     return source_dir
 
 
@@ -120,17 +115,16 @@ def main() -> int:
     mongo_uri = os.getenv("MONGODB_URI", "mongodb://mongo:27017/concurso")
     client = MongoClient(mongo_uri)
     db = resolve_database(client)
-    dataset = os.getenv("DATASET", "prod").lower()
-    collection_name = collection_for_dataset()
+    collection_name = collection_for_ingest()
     collection = db[collection_name]
     drop_collection = prompt_drop_collection()
     
     # Optionally drop the collection before ingesting.
     if drop_collection:
-        print(f"Using dataset: {dataset}. Dropping collection: {collection_name}")
+        print(f"Dropping collection: {collection_name}")
         collection.drop()
     else:
-        print(f"Using dataset: {dataset}. Appending to collection: {collection_name}")
+        print(f"Appending to collection: {collection_name}")
 
     # Build documents for valid image files and prune non-image files.
     docs = []

@@ -7,13 +7,8 @@ const PhotoSchema = new Schema({
     city: {type: String, required: false}
 });
 
-const collectionFor = (dataset) => {
-  if (dataset === 'test') return process.env.PHOTOS_COLLECTION_TEST || 'photos_test';
-  return process.env.PHOTOS_COLLECTION_PROD || 'photos_prod';
-};
-
-const getPhotoModel = (dataset) => {
-  const collection = collectionFor(dataset);
+const getPhotoModel = () => {
+  const collection = process.env.PHOTOS_COLLECTION || 'photos';
   const modelName = `Photo_${collection}`;
   return mongoose.models[modelName] || mongoose.model(modelName, PhotoSchema, collection);
 };

@@ -11,7 +11,7 @@ services:
       - /home/pablo/Imágenes/concursoDev:/var/lib/concurso/fotos:ro
     depends_on:
       - frontend
-      - api_prod
+      - api
 
   mongo:
     image: mongo:6
@@ -19,33 +19,14 @@ services:
     volumes:
       - mongo-data:/data/db
 
-  api_test:
+  api:
     build:
       context: .
       dockerfile: server/Dockerfile
     environment:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/concurso
-      - DATASET=test
-      - PHOTOS_COLLECTION_TEST=photos_test
-      - PHOTOS_COLLECTION_PROD=photos_prod
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./server:/usr/src/app/server
-    depends_on:
-      - mongo
-
-  api_prod:
-    build:
-      context: .
-      dockerfile: server/Dockerfile
-    environment:
-      - PORT=3000
-      - MONGODB_URI=mongodb://mongo:27017/concurso
-      - DATASET=prod
-      - PHOTOS_COLLECTION_TEST=photos_test
-      - PHOTOS_COLLECTION_PROD=photos_prod
+      - PHOTOS_COLLECTION=photos
     ports:
       - "3000:3000"
     volumes:
@@ -64,35 +45,18 @@ services:
     volumes:
       - ./static:/app
     depends_on:
-      - api_test
+      - api
 
-  ingest_test:
+  ingest:
     image: python:3.12-slim
     restart: "no"
     working_dir: /app
     command: sh -c "pip install -r /app/requirements.txt && python -m photo_ingest"
     environment:
-      - PHOTOS_DIR=/photos_test
-      - PHOTOS_OUT_DIR=/photos_out
       - MONGODB_URI=mongodb://mongo:27017/concurso
-      - DATASET=test
-    volumes:
-      - ./tools/photo_ingest:/app
-      - ./static/public/fotos_test:/photos_test:ro
-      - ./static/public/fotos:/photos_out:rw
-    depends_on:
-      - mongo
-
-  ingest_prod:
-    image: python:3.12-slim
-    restart: "no"
-    working_dir: /app
-    command: sh -c "pip install -r /app/requirements.txt && python -m photo_ingest"
-    environment:
+      - PHOTOS_COLLECTION=photos
       - PHOTOS_DIR=/photos_in
       - PHOTOS_OUT_DIR=/photos_out
-      - MONGODB_URI=mongodb://mongo:27017/concurso
-      - DATASET=prod
     volumes:
       - ./tools/photo_ingest:/app
       - /home/pablo/Imágenes/ConcursoDev:/photos_in:ro

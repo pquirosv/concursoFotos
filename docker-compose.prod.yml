@@ -13,9 +13,7 @@ services:
     environment:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/concurso
-      - DATASET=prod
-      - PHOTOS_COLLECTION_TEST=photos_test
-      - PHOTOS_COLLECTION_PROD=photos_prod
+      - PHOTOS_COLLECTION=photos
       - PHOTOS_DIR=/var/lib/concurso/fotos
     depends_on:
       - mongo
@@ -31,8 +29,7 @@ services:
     command: sh -c "pip install -r /app/requirements.txt && python -m photo_ingest"
     environment:
       - MONGODB_URI=mongodb://mongo:27017/concurso
-      - DATASET=prod
-      - PHOTOS_COLLECTION_PROD=photos_prod
+      - PHOTOS_COLLECTION=photos
       - PHOTOS_DIR=/var/lib/concurso/fotos
     volumes:
       - ./tools/photo_ingest:/app

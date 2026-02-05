@@ -19,18 +19,14 @@ docker compose up --build
 - The API image is built from `server/Dockerfile` with context at repo root.
 - Nginx proxies `/` to the Vite dev server and `/api` to the API container.
 - The photo files are served from `/fotos/` via Nginx. In `docker-compose.yml` that path is mapped from `/home/pablo/Imágenes/concursoDev`. Adjust that host path for your machine.
-- There are two API containers:
-  - `api_prod` on port `3000` (used by Nginx)
-  - `api_test` on port `3001`
-- The dataset is chosen via `DATASET` and maps to:
-  - `prod` -> `photos_prod`
-  - `test` -> `photos_test`
+- The API container runs as `api` on port `3000` (used by Nginx).
+- The photos collection defaults to `photos` and can be overridden with `PHOTOS_COLLECTION`.
 
 ## Insert a sample document
 
-This inserts into the `photos_prod` collection in the `concurso` database:
+This inserts into the `photos` collection in the `concurso` database:
 ```bash
-docker compose exec mongo mongosh "mongodb://localhost:27017/concurso" --eval 'db.photos_prod.insertOne({name:"paris.jpg",year:2021})'
+docker compose exec mongo mongosh "mongodb://localhost:27017/concurso" --eval 'db.photos.insertOne({name:"paris.jpg",year:2021})'
 ```
 
 ## Run ingest in a container
