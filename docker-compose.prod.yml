@@ -27,8 +27,8 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongo:27017/concurso
       - PHOTOS_COLLECTION=photos
-      - PHOTOS_DIR=${PHOTOS_DIR:-/var/lib/concurso/fotos}
-      - PHOTOS_OUT_DIR=${PHOTOS_OUT_DIR:-/var/lib/concurso/fotos_out}
+      - PHOTOS_DIR=/photos
+      - PHOTOS_OUT_DIR=/photos_out
     volumes:
       - ./tools/photo_ingest:/app
       - ${PHOTOS_DIR:-/var/lib/concurso/fotos}:/photos:ro
