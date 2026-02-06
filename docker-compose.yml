@@ -25,7 +25,6 @@ services:
     environment:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/concurso
-      - PHOTOS_COLLECTION=photos
     ports:
       - "3000:3000"
     volumes:
@@ -53,11 +52,12 @@ services:
     command: sh -c "pip install -r /app/requirements.txt && python -m photo_ingest"
     environment:
       - MONGODB_URI=mongodb://mongo:27017/concurso
-      - PHOTOS_COLLECTION=photos
+      - SOURCE_DIR=/source
       - PHOTOS_DIR=/photos
     volumes:
       - ./tools/photo_ingest:/app
-      - ${PHOTOS_DIR:-/var/lib/concurso/fotos}:/photos:ro
+      - ${SOURCE_DIR:-/var/lib/concurso/fotos}:/source:ro
+      - ${PHOTOS_DIR:-/var/lib/concurso/fotos_out}:/photos:rw
     depends_on:
       - mongo
 

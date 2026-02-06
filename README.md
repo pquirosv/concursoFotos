@@ -6,14 +6,15 @@ Project to display photos and play a guessing game by year. It includes an API (
 
 1) Create `.env` with your local photo folders:
 
-Edit `.env` and set an **absolute path**:
+Edit `.env` and set **absolute paths**:
 ```
-PHOTOS_DIR=/path/to/your/photos
+SOURCE_DIR=/path/to/your/photos
+PHOTOS_DIR=/path/to/your/photos_out
 ```
 
-2) Create the folders and put photos in `PHOTOS_DIR`:
+2) Create the folders and put photos in `SOURCE_DIR`:
 ```bash
-mkdir -p /path/to/your/photos
+mkdir -p /path/to/your/photos /path/to/your/photos_out
 ```
 
 3) Start the stack:
@@ -25,7 +26,8 @@ docker compose up -d --build
 ```bash
 docker compose run --rm ingest
 ```
-Note: inside the container the script always reads `/photos`, which maps to `PHOTOS_DIR`.
+Note: inside the container the script reads `/photos` and writes `/photos_out`.
+Those map to your host paths defined in `.env` (`SOURCE_DIR`, `PHOTOS_DIR`).
 
 5) Open the UI:
 - `http://localhost:8080` (via Nginx)
@@ -37,7 +39,7 @@ Note: inside the container the script always reads `/photos`, which maps to `PHO
 - `static/`: frontend.
 - `tools/photo_ingest/`: Python ingestion script.
 
-The ingest service scans `PHOTOS_DIR` recursively for supported image files, copies them into a temporary `${PHOTOS_DIR}_tmp`, extracts metadata (year from a `YYYYMMDD` filename pattern and optional city from a top-level folder), and writes records to MongoDB (default collection `photos`). On success it replaces `PHOTOS_DIR` with the temp folder; on failure it deletes the temp folder. It can optionally drop the collection before ingest (prompt or `DROP_COLLECTION`).
+The ingest service scans `SOURCE_DIR` recursively for supported image files, copies them into `PHOTOS_DIR`, extracts metadata (year from a `YYYYMMDD` filename pattern and optional city from a top-level folder), and writes records to MongoDB (default collection `photos`). It can optionally drop the collection before ingest (prompted).
 
 ## Run with Docker
 
@@ -53,7 +55,8 @@ docker compose up --build
 ```
 docker compose run --rm ingest
 ```
-Note: inside the container the script always reads `/photos`, which maps to `PHOTOS_DIR`.
+Note: inside the container the script reads `/photos` and writes `/photos_out`.
+Those map to your host paths defined in `.env` (`SOURCE_DIR`, `PHOTOS_DIR`).
 
 ## Run frontend only (Vite dev server)
 
@@ -95,7 +98,7 @@ Notes:
 ```
 docker compose -f docker-compose.prod.yml up -d
 ```
-- The `api` service exposes `127.0.0.1:3000` and mounts photos from `/var/lib/concurso/fotos`.
+- The `api` service exposes `127.0.0.1:3000`.
 - To reindex photos in production:
 ```
 docker compose -f docker-compose.prod.yml run --rm ingest

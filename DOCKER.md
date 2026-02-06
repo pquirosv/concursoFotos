@@ -6,14 +6,15 @@ Prereqs: Docker and Docker Compose installed.
 
 1) Create your local env file
 
-2) Edit `.env` with an **absolute host path**:
+2) Edit `.env` with **absolute host paths**:
 ```bash
-PHOTOS_DIR=/path/to/your/photos
+SOURCE_DIR=/path/to/your/photos
+PHOTOS_DIR=/path/to/your/photos_out
 ```
 
-3) Create the folders and put your photos in `PHOTOS_DIR`:
+3) Create the folders and put your photos in `SOURCE_DIR`:
 ```bash
-mkdir -p /path/to/your/photos
+mkdir -p /path/to/your/photos /path/to/your/photos_out
 ```
 
 4) Build and start everything:
@@ -25,7 +26,8 @@ docker compose up -d --build
 ```bash
 docker compose run --rm ingest
 ```
-Note: inside the container the script always reads `/photos`, which maps to your host `PHOTOS_DIR`.
+Note: inside the container the script reads `/photos` and writes `/photos_out`.
+Those map to your host paths defined in `.env` (`SOURCE_DIR`, `PHOTOS_DIR`).
 
 6) Open the UI:
 - `http://localhost:8080` (proxied through Nginx)
@@ -33,11 +35,11 @@ Note: inside the container the script always reads `/photos`, which maps to your
 
 ## Notes
 
-- Docker Compose reads variables from `.env`. If it is missing, the default `/var/lib/concurso/fotos` is used. If that path is not writable on your host, set a custom path in `.env`.
+- Docker Compose reads variables from `.env`. If it is missing, defaults are used (`SOURCE_DIR=/var/lib/concurso/fotos`, `PHOTOS_DIR=/var/lib/concurso/fotos_out`). If those paths are not writable on your host, set custom paths in `.env`.
 - Nginx serves photos from `PHOTOS_DIR` at `/fotos/`.
-- Ingest reads from `PHOTOS_DIR`, writes to a temporary `${PHOTOS_DIR}_tmp`, then replaces `PHOTOS_DIR` on success.
+- Ingest reads from `SOURCE_DIR` and writes to `PHOTOS_DIR` (source is read-only).
 - The API runs on port `3000` inside Docker and is proxied by Nginx at `/api`.
-- The photos collection defaults to `photos` and can be overridden with `PHOTOS_COLLECTION`.
+- The photos collection is `photos`.
 
 ## Insert a sample document (optional)
 
@@ -53,4 +55,4 @@ For the production-like stack (API + Mongo + ingest), use:
 docker compose -f docker-compose.prod.yml up --build
 ```
 
-If you use the `ingest` service in production, ensure the compose file mounts the input folder (and that it exists on the host).
+If you use the `ingest` service in production, ensure the compose file mounts both input and output folders (and that they exist on the host).
