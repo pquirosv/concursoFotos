@@ -4,10 +4,7 @@ Prereqs: Docker and Docker Compose installed.
 
 ## First time (after clone)
 
-1) Create your local env file:
-```bash
-cp .env.example .env
-```
+1) Create your local env file
 
 2) Edit `.env` with **absolute host paths**:
 ```bash
@@ -29,6 +26,8 @@ docker compose up -d --build
 ```bash
 docker compose run --rm ingest
 ```
+Note: inside the container the script always reads `/photos` and writes `/photos_out`.
+Those map to your host paths defined in `.env` (`PHOTOS_DIR`, `PHOTOS_OUT_DIR`).
 
 6) Open the UI:
 - `http://localhost:8080` (proxied through Nginx)
@@ -36,7 +35,7 @@ docker compose run --rm ingest
 
 ## Notes
 
-- Docker Compose reads variables from `.env`. If it is missing or empty, you will get an error like: `invalid spec: :/var/lib/concurso/fotos:ro`.
+- Docker Compose reads variables from `.env`. If it is missing, defaults are used (`/var/lib/concurso/fotos` and `/var/lib/concurso/fotos_out`). If those paths are not writable on your host, set custom paths in `.env`.
 - Nginx serves photos from `PHOTOS_OUT_DIR` at `/fotos/`.
 - Ingest reads from `PHOTOS_DIR` and writes to `PHOTOS_OUT_DIR` (source is read-only).
 - The API runs on port `3000` inside Docker and is proxied by Nginx at `/api`.

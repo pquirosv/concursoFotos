@@ -7,7 +7,7 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ${PHOTOS_OUT_DIR}:/var/lib/concurso/fotos:ro
+      - ${PHOTOS_OUT_DIR:-/var/lib/concurso/fotos_out}:/var/lib/concurso/fotos:ro
     depends_on:
       - frontend
       - api
@@ -58,8 +58,8 @@ services:
       - PHOTOS_OUT_DIR=/photos_out
     volumes:
       - ./tools/photo_ingest:/app
-      - ${PHOTOS_DIR}:/photos:ro
-      - ${PHOTOS_OUT_DIR}:/photos_out:rw
+      - ${PHOTOS_DIR:-/var/lib/concurso/fotos}:/photos:ro
+      - ${PHOTOS_OUT_DIR:-/var/lib/concurso/fotos_out}:/photos_out:rw
     depends_on:
       - mongo
 

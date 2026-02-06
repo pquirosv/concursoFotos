@@ -21,10 +21,12 @@ IMAGE_EXTENSIONS = {
 }
 
 
+# Resolve the target MongoDB collection name from env or default.
 def collection_for_ingest() -> str:
     return os.getenv("PHOTOS_COLLECTION", "photos")
 
 
+# Pick the database from the client default or fallback env name.
 def resolve_database(client: MongoClient):
     db = client.get_default_database()
     if db is not None:
@@ -32,6 +34,7 @@ def resolve_database(client: MongoClient):
     return client[os.getenv("MONGODB_DB", "concurso")]
 
 
+# Extract a YYYY year from an 8-digit date inside a filename.
 def extract_year(filename: str):
     for match in re.finditer(r"(?<!\d)(\d{8})(?!\d)", filename):
         year = int(match.group(1)[:4])
@@ -39,9 +42,11 @@ def extract_year(filename: str):
             return year
     return None
 
+# Check if a file has a supported image extension.
 def is_image_file(path: Path) -> bool:
     return path.suffix.lower() in IMAGE_EXTENSIONS
 
+# Ask whether to drop the collection (supports non-interactive env).
 def prompt_drop_collection() -> bool:
     env_value = os.getenv("DROP_COLLECTION")
     if env_value is not None:
@@ -63,6 +68,7 @@ def prompt_drop_collection() -> bool:
         i += 1
     return True
 
+# Locate repo root by searching for common project markers.
 def find_repo_root() -> Path:
     markers = ("docker-compose.yml", ".env", ".git")
     for start in (Path.cwd(), Path(__file__).resolve()):
@@ -71,6 +77,7 @@ def find_repo_root() -> Path:
                 return parent
     return Path.cwd()
 
+# Parse a simple .env file into a dict (no expansion).
 def load_dotenv(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
@@ -83,6 +90,7 @@ def load_dotenv(path: Path) -> dict[str, str]:
         data[key.strip()] = value.strip().strip('"')
     return data
 
+# Quote/escape values for writing back into .env.
 def format_env_value(value: str) -> str:
     if value == "":
         return '""'
@@ -90,6 +98,7 @@ def format_env_value(value: str) -> str:
         return '"' + value.replace('"', '\\"') + '"'
     return value
 
+# Merge updates into .env, preserving existing lines when possible.
 def update_dotenv_file(path: Path, updates: dict[str, str]) -> None:
     lines: list[str] = []
     if path.exists():
@@ -119,23 +128,27 @@ def update_dotenv_file(path: Path, updates: dict[str, str]) -> None:
 
     path.write_text("\n".join(updated_lines) + "\n")
 
+# Normalize a user-provided path to an absolute Path.
 def normalize_path(value: str) -> Path:
     path = Path(value).expanduser()
     if not path.is_absolute():
         path = (Path.cwd() / path).resolve()
     return path
 
+# Check if a path can be created or written to.
 def can_create_path(path: Path) -> bool:
     if path.exists():
         return os.access(path, os.W_OK | os.X_OK)
     return os.access(path.parent, os.W_OK | os.X_OK)
 
+# Choose a default base directory with a writable fallback.
 def default_photos_base_dir() -> Path:
     preferred = Path("/var/lib/concurso")
     if os.name != "nt" and can_create_path(preferred):
         return preferred
     return Path.home() / "concurso"
 
+# Ensure a directory exists and is usable; report errors.
 def ensure_directory(path: Path, label: str) -> bool:
     try:
         path.mkdir(parents=True, exist_ok=True)
@@ -150,6 +163,7 @@ def ensure_directory(path: Path, label: str) -> bool:
         return False
     return True
 
+# Prompt the user for a path, falling back to a default.
 def prompt_for_path(var_name: str, default_path: Path) -> Path | None:
     attempts = 0
     while attempts < 3:
@@ -161,6 +175,7 @@ def prompt_for_path(var_name: str, default_path: Path) -> Path | None:
         attempts += 1
     return None
 
+# Resolve PHOTOS_DIR/PHOTOS_OUT_DIR, prompting if needed.
 def resolve_photos_dirs() -> tuple[Path, Path] | None:
     repo_root = find_repo_root()
     dotenv_path = repo_root / ".env"
@@ -218,10 +233,12 @@ def resolve_photos_dirs() -> tuple[Path, Path] | None:
         return None
     return source_dir, output_dir
 
+# Yield files from a source directory, sorted for stability.
 def iter_files(source_dir: Path):
     return (path for path in sorted(source_dir.rglob("*")) if path.is_file())
 
 
+# Main ingest flow: resolve dirs, ingest files, update DB.
 def main() -> int:
     resolved = resolve_photos_dirs()
     if resolved is None:

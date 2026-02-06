@@ -5,9 +5,6 @@ Project to display photos and play a guessing game by year. It includes an API (
 ## Quickstart (Docker)
 
 1) Create `.env` with your local photo folders:
-```bash
-cp .env.example .env
-```
 
 Edit `.env` and set **absolute paths**:
 ```
@@ -29,6 +26,8 @@ docker compose up -d --build
 ```bash
 docker compose run --rm ingest
 ```
+Note: inside the container the script always reads `/photos` and writes `/photos_out`.
+Those map to your host paths defined in `.env` (`PHOTOS_DIR`, `PHOTOS_OUT_DIR`).
 
 5) Open the UI:
 - `http://localhost:8080` (via Nginx)
@@ -39,6 +38,8 @@ docker compose run --rm ingest
 - `server/`: API and models.
 - `static/`: frontend.
 - `tools/photo_ingest/`: Python ingestion script.
+
+The ingest service scans `PHOTOS_DIR` recursively for supported image files, copies them into `PHOTOS_OUT_DIR`, extracts metadata (year from a `YYYYMMDD` filename pattern and optional city from a top-level folder), and writes records to MongoDB (default collection `photos`). It can optionally drop the collection and clear the output directory before ingest (prompt or `DROP_COLLECTION`).
 
 ## Run with Docker
 
@@ -54,6 +55,8 @@ docker compose up --build
 ```
 docker compose run --rm ingest
 ```
+Note: inside the container the script always reads `/photos` and writes `/photos_out`.
+Those map to your host paths defined in `.env` (`PHOTOS_DIR`, `PHOTOS_OUT_DIR`).
 
 ## Run frontend only (Vite dev server)
 
