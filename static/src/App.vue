@@ -121,7 +121,7 @@ const SetAnswer = (e) => {
 
 <template>
 	<main class="app">
-		<h1>Concurso</h1>
+		<h1 class="title-quiz">Concurso</h1>
 		<div v-if="showEmptyState" class="empty-state">
 			<span class="empty-message">No hay fotos disponibles. Por favor, sube algunas fotos para comenzar el concurso.</span>
 		</div>
