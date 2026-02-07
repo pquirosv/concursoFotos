@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import shutil
+import datetime
 from pathlib import Path
 
 from pymongo import MongoClient
@@ -35,7 +36,9 @@ def resolve_database(client: MongoClient):
 def extract_year(filename: str):
     for match in re.finditer(r"(?<!\d)(\d{8})(?!\d)", filename):
         year = int(match.group(1)[:4])
-        if year >= 1970:
+        # actual year
+        datetime 
+        if year >= 1970 and year <= datetime.datetime.now().year:
             return year
     return None
 
